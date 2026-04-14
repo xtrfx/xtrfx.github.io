@@ -1,0 +1,6 @@
+### OWN additions
+*.swp
+*.tmp
+*.txt
+*.todo
+/test

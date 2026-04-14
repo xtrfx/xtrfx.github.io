@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-03-22-asus-rt-n12-openwrt</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/about.html">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <hr />
+<p>layout: post
+title: "OpenWRT-ASUS-RT-N12-VP"
+date: 2026-03-22
+categories: UART Firmware OpenWRT</p>
+<hr />
+<h1>WIP -  OpenWRT install on ASUS RT-N12 VP</h1>
+<p>I recently got hold of two old ASUS routers. The routers are no longer in production, but in
+principle should be able to handle a few versions of OpenWRT (1) even though the hardware
+is "old" by current OpenWRT standards.</p>
+<p>As the devices were a donation I feel a certain amount of liberty to explore, experiment
+and break things. A good learning project.</p>
+<p>While my initial estimate assumed that it would take at most a week to:</p>
+<ol>
+<li>flash the OpenWRT OS onto the routers</li>
+<li>harden the OpenWRT installation </li>
+<li>automate the process to repeat on the second one</li>
+</ol>
+<p>Three weeks later I am finaly done with step 1..... a good learning project indeed.</p>
+<h2>Problems and Solutions</h2>
+<h3>USBGuard forces modeswtich on TPlink UE300</h3>
+<p>On certain machines this ethernet adapter will present itself as a mass storage device
+rather than as an ethernet adapter. I tried a number of solutions including using
+usb-modeswitch, editing modprobe.d and other voodoo without success. In the end it seems
+to be partly a conflict with USBGuard where the device after being blocked will go into
+an alternate state. Once in that state, for whatever reason I could not revert back to
+default. My working solution is to quickly allow the device after plugging it in
+(within seconds.)</p>
+<h3>TFTP Tips</h3>
+<p>These are old devices  so the available troubleshooting informationis a bit thin
+but in the end I got TFTP flash of the firmware working. The router runs a TFTP server
+allowing connections from devices with the 192.168.1.75 (some sites report 192.168.2.10)
+ip address when in recovery-mode. To be sure of successful upload, I suggest the following tftp settings:</p>
+<ul>
+<li>binary </li>
+<li>verbose</li>
+<li>trace  </li>
+</ul>
+<p>I was able to flash the device with a variety of firmware files but outside of the stock
+ASUS firmware, the device would enter a boot loop (next section).  </p>
+<h3>Kernel Panic</h3>
+<p>This was  my biggest hurdle. After flashing the OpenWRT files, the device enters into a
+permanent boot loop. The device does not have a USB port but there is a UART interface. I removed
+the cover, soldered headers and using a FT232RL adapter was able to monitor
+the bootup of the device. At a certain point while loading the kernel the
+memory would run out.</p>
+<p> To try to resolve this, I tried several solutions including: </p>
+  <ul>
+    <li> Custom firmware builds - no success </li>
+    <li> Other firmware versions - no success </li>
+    <li> Builds for slightly different targets (MT7620) - no success </li>
+  </ul>
+<p>
+Until, for some reason I tried to just directly use the sysupgrade image of OpenWrt
+verion 21.02 and it worked..... I had tried using upgrade images earlier in the process
+and it did not work. I dont know what changed. It worked after an unsuccesful flash for a 
+slightly different target. Did that unset/clear a memory chunk? Did I need to do a certain
+number of flashes before the image took hold? Vodoo? Nonetheless, I now have a device 
+running OpenWRT. Hardening, boot log snips and photos will be in an upcomming posts. And if,
+like me you are trying to get this working, I think the real trick might just be persistance....
+and it did not work. I dont know what changed. It worked after an unsuccesful flash for
+a 
+slightly different target. Did that unset/clear a memory chunk? Did I need to do a
+certain
+number of flashes before the image took hold? Vodoo? Nonetheless, I now have a device 
+running OpenWRT. Hardening, boot logs and photos will be in an upcomming posts. And if,
+like me you are trying to get this working, I think the real trick might just be
+persistance....
+and it did not work. I dont know what changed. It worked after an unsuccesful flash for a 
+slightly different target. Did that unset/clear a memory chunk? Did I need to do a certain
+number of flashes before the image took hold? Vodoo? Nonetheless, I now have a device 
+running OpenWRT. Hardening, boot logs and photos will be in an upcomming posts. And if,
+like me you are trying to get this working, I think the real trick might just be persistance....
+</p>
+<h3>Device Notes</h3>
+<p>OpenWRT Target: MediaTek MT7628NN   ramips  mt76x8</p>
+<h3>References</h3>
+<ol>
+<li>https://openwrt.org/toh/asus/rt-n12_vp_b1</li>
+<li>https://github.com/openwrt/openwrt/blob/main/README.md</li>
+<li>https://gist.github.com/chankruze/dee8c2ba31c338a60026e14e3383f981</li>
+<li>https://openwrt.org/docs/guide-developer/toolchain/beginners-build-guide</li>
+<li>https://www.asus.com/us/supportonly/rt-n12-vp-b1/helpdesk_bios?model3Name=RT-N12-VP-B1</li>
+<li>https://openwrt.org/docs/guide-user/additional-software/saving_space</li>
+<li>https://openwrt.org/docs/guide-developer/toolchain/use-buildsystem</li>
+</ol>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev </p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-04-02-ASUS_RT_N12_VPB1_Internals_Boot</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <hr />
+<p>layout: post
+title: "ASUS-RT-N12-VP_Internals_Boot"
+date: 2026-07-02
+categories: UART Firmware OpenWRT</p>
+<hr />
+<h1>ASUS RT-N12 VP B1 Internals</h1>
+<p>I had not planned on opening up the device but troubles with flashing OpenWRT forced my
+hand a bit. The case top pops off using a narrow guitar pick style pry wedge after
+removing two small screws from the back.  Perhaps due to my lack of expertise I snapped
+a couple of attachment hooks but internal aesthetics aside, from the outside nothing
+about this tinkering is obvious.</p>
+
+<p>Desoldering the UART contacts proved to be a pain as well, but I am currently without a
+good chisel tip for my iron so perhaps delivering the necessary heat just took longer
+than needed. Perhaps drilling them out is a better option but for me, in the end it
+worked. Pictures of the board are below before and after adding header pins and a boot
+log snip form the 21.02 install systemupgrade image. Enjoy?</p>
+
+<p> For reference, the baud rate for the ports is 57600.</p>
+
+       <img
+	src="/images/asusRTN12VPB1internal.jpg"
+	alt="PCB of the router, UART pads in area J1" />
+      <img
+	src="/images/asusRTN12VPB1withpins.jpg"
+	alt="Now with pins added" />
+      </article>
+
+      <div class="log" id="log">
+<pre>	
+--- snip ---
+
+Starting kernel ...
+
+
+[    0.000000] Linux version 5.4.143 (builder@buildhost) (gcc version 8.4.0 (OpenWrt GCC
+8.4.0 r16279-5cc0535800)) #0 Tue Aug 31 22:20:08 2021
+[    0.000000] Board has DDR1
+[    0.000000] Analog PMU set to hw control
+[    0.000000] Digital PMU set to hw control
+
+</pre>
+    </div>
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>
