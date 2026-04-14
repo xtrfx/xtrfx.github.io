@@ -51,7 +51,7 @@ an alternate state. Once in that state, for whatever reason I could not revert b
 default. My working solution is to quickly allow the device after plugging it in
 (within seconds.)</p>
 <h3>TFTP Tips</h3>
-<p>These are old devices  so the available troubleshooting informationis a bit thin
+<p>These are old devices  so the available troubleshooting information is a bit thin
 but in the end I got TFTP flash of the firmware working. The router runs a TFTP server
 allowing connections from devices with the 192.168.1.75 (some sites report 192.168.2.10)
 ip address when in recovery-mode. To be sure of successful upload, I suggest the following tftp settings:</p>
@@ -63,8 +63,8 @@ ip address when in recovery-mode. To be sure of successful upload, I suggest the
 <p>I was able to flash the device with a variety of firmware files but outside of the stock
 ASUS firmware, the device would enter a boot loop (next section).  </p>
 <h3>Kernel Panic</h3>
-<p>This was  my biggest hurdle. After flashing the OpenWRT files, the device enters into a
-permanent boot loop. The device does not have a USB port but there is a UART interface. I removed
+<p>This was  my biggest hurdle. After flashing the OpenWRT files, the device would enter into a
+boot loop. The device does not have a USB port but there is a UART interface. I removed
 the cover, soldered headers and using a FT232RL adapter was able to monitor
 the bootup of the device. At a certain point while loading the kernel the
 memory would run out.</p>
@@ -77,23 +77,12 @@ memory would run out.</p>
 <p>
 Until, for some reason I tried to just directly use the sysupgrade image of OpenWrt
 verion 21.02 and it worked..... I had tried using upgrade images earlier in the process
-and it did not work. I dont know what changed. It worked after an unsuccesful flash for a 
+and it did not work.</p>
+<p>
+I dont know what changed. It worked after an unsuccesful flash for a 
 slightly different target. Did that unset/clear a memory chunk? Did I need to do a certain
 number of flashes before the image took hold? Vodoo? Nonetheless, I now have a device 
 running OpenWRT. Hardening, boot log snips and photos will be in an upcomming posts. And if,
-like me you are trying to get this working, I think the real trick might just be persistance....
-and it did not work. I dont know what changed. It worked after an unsuccesful flash for
-a 
-slightly different target. Did that unset/clear a memory chunk? Did I need to do a
-certain
-number of flashes before the image took hold? Vodoo? Nonetheless, I now have a device 
-running OpenWRT. Hardening, boot logs and photos will be in an upcomming posts. And if,
-like me you are trying to get this working, I think the real trick might just be
-persistance....
-and it did not work. I dont know what changed. It worked after an unsuccesful flash for a 
-slightly different target. Did that unset/clear a memory chunk? Did I need to do a certain
-number of flashes before the image took hold? Vodoo? Nonetheless, I now have a device 
-running OpenWRT. Hardening, boot logs and photos will be in an upcomming posts. And if,
 like me you are trying to get this working, I think the real trick might just be persistance....
 </p>
 <h3>Device Notes</h3>
