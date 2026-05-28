@@ -3,8 +3,9 @@
 
 import markdown
 from pathlib import Path
+import sys
 
-input_dir = "md_vers"
+#input_dir = "md_vers"
 output_dir = "./"
 Path(output_dir).mkdir(exist_ok=True)
 
@@ -15,7 +16,7 @@ extensions = [
     'tables'            # Markdown table support
 ]
 
-for md_file in Path(input_dir).glob("*.md"):
+for md_file in sys.argv:
     with open(md_file, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -27,7 +28,7 @@ for md_file in Path(input_dir).glob("*.md"):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{md_file.stem}</title>
+  <title>{md_file}</title>
   <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
@@ -55,7 +56,7 @@ for md_file in Path(input_dir).glob("*.md"):
 </body>
 </html>"""
     
-    output_file = Path(output_dir) / f"{md_file.stem}.html"
+    output_file = Path(output_dir) / f"{md_file}.html"
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(full_html)
     

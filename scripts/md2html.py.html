@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>../../scripts/md2html.py</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <h1>!/usr/bin/env python3.8</h1>
+<h1>Modified claude python routine for MD to HTML transition</h1>
+<p>import markdown
+from pathlib import Path
+import sys</p>
+<h1>input_dir = "md_vers"</h1>
+<p>output_dir = "./"
+Path(output_dir).mkdir(exist_ok=True)</p>
+<h1>Only the extensions you actually need</h1>
+<p>extensions = [
+    'fenced_code',      # Enables <code>code blocks</code>
+    'codehilite',       # Syntax highlighting in those blocks
+    'tables'            # Markdown table support
+]</p>
+<p>for md_file in sys.argv:
+    with open(md_file, 'r', encoding='utf-8') as f:
+        content = f.read()</p>
+<pre class="codehilite"><code>html_content = markdown.markdown(content, extensions=extensions)
+
+full_html = f&quot;&quot;&quot;&lt;!DOCTYPE html&gt;
+</code></pre>
+
+<p><html lang="en"></p>
+<p><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{md_file}</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head></p>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       {html_content}
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+<p></html>"""</p>
+<pre class="codehilite"><code>output_file = Path(output_dir) / f&quot;{md_file}.html&quot;
+with open(output_file, 'w', encoding='utf-8') as f:
+    f.write(full_html)
+
+print(f&quot;✓ {md_file} → {output_file}&quot;)
+</code></pre>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>

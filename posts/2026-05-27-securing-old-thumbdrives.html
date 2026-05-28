@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>./test.md</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+<h1>Securing old thumb-drives</h1>
+       <p><i>***Disclaimer: For truly sensitive data, please consider doing your own homework on top of this basic cleaning process (mind your actual threat model and that sort of thing). Also, be careful and don't erase drives you actually care about. (work in a VM if you can)</p>
+</i>
+
+<p>Over the years we have collected a large number of thumb drives (gifts, conference promo items, corporate branding and such.) I don't really know what is on each drive but given their typical use cases (data for printing/data transfer) I can imagine some sensitive data residing on them, probably quite a lot actually. As part of an overall effort to minimise our data risks, I have decided to clean up these things, in a secure manner.</p>
+<p>Handling 'Data-at-rest' as it turns out demands some consideration:
+1) future copies of this data should be stored securely
+2) the security has to work across several platforms
+3) older/smaller drives will be slated for destruction without data exposure
+4) there are 20+ usb drives that need backups, data wipes and possible formatting - lot's of opportunities to make mistakes</p>
+<h3>Data Security</h3>
+<p>Independent of drive destiny, a bit of bit-bleaching is in order and the devices should be wiped with either zeros or random numbers. Devices that will store data in the future will be bleached with random numbers to make it appear that everything on the drive is just random data.</p>
+<h3>Cross platform options</h3>
+<p>Once wiped, the user has options: 1) LUKS with cryptsetup - for linux use only or 2) VeraCrypt for cross-platform and 3) Bitlocker for windows only. Bitlocker being a windows only protocol, is beyond the scope of these scripts after a device has been wiped.</p>
+<h3>Destruction</h3>
+<p>Drives destined for destruction are wiped with zeros just as precaution, prior to the low-tech hammer smash. For me this is overkill, but perhaps not for others.</p>
+<h3>Automation</h3>
+<p>To control, automate and guardrail the process, a series of shell scripts seems to be in order. The scripts allow for offering options, organising the process/making it repeatable and  providing warnings along the way to help make sure that no functional drive gets wiped.</p>
+<p>As an additional measure, I suggest doing this in a VM, that way you only risk wiping
+the VM instead of a critical system drive. <a href="https://github.com/xtrfx/thumbWipe">Scripts on github</a></p>
+<h3>Additional considerations:</h3>
+<p>For truly sensitive data, the scripts might not provide the requisite level of 'security.' For instance, LUKS encryption in its basic form leaves a plain text header on the drive openly announcing the device is encrypted. </p>
+<p>Referring back to the original disclaimer, if you ever use these, consider header-less LUKS, hidden drives or VeraCrypt options as well as maybe a data-nuke password should you ever be forced to 'show your data.'</p>
+<h3>REFERENCES (in no particular order)</h3>
+https://wiki.archlinux.org/title/Securely_wipe_disk
+https://skrilnetz.net/bullet-proof-data-encryption-with-luks-and-a-detached-header/
+https://gitlab.com/cryptsetup/cryptsetup
+https://cybersec4europe.eu/data-at-rest-encryption
+https://wiki.archlinux.org/title/VeraCrypt/
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>
