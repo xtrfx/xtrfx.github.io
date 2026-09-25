@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-09-25-IOLI_Crackmes_0x01</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <p>Each challenge seems to build on the previous version. As such, file gives the same output but a search of the strings now shows that password has been hidden. </p>
+<pre class="codehilite"><code class="language-bash">&gt; rabin2 -z crackme0x01 
+nth paddr      vaddr      len size section type  string
+―――――――――――――――――――――――――――――――――――――――――――――――――――――――
+0   0x00002004 0x00402004 23  24   .rodata ascii IOLI Crackme Level 0x01
+1   0x0000201c 0x0040201c 9   11   .rodata ascii Password:
+2   0x0000202a 0x0040202a 14  15   .rodata ascii Password OK :)
+3   0x00002039 0x00402039 17  18   .rodata ascii Invalid Password!
+</code></pre>
+
+<p>Moving into r2 we look at the main function again to hunt for the password there. </p>
+<pre class="codehilite"><code class="language-bash">[0x00401176]s main
+[0x00401176]&gt; pdf
+            ; ICOD XREF from entry0 @ 0x4010b1(r)
+┌ 108: int main (int argc, char **argv, char **envp);
+│ afv: vars(1:sp[0xc..0xc])
+│           0x00401176      f30f1efa       endbr64
+│           0x0040117a      55             push rbp
+│           0x0040117b      4889e5         mov rbp, rsp
+│           0x0040117e      4883ec10       sub rsp, 0x10
+│           0x00401182      488d3d7b0e..   lea rdi, str.IOLI_Crackme_Level_0x01 ; str.IOLI_Crackme_Level_0x01
+│                                                                      ; 0x402004 ; &quot;IOLI Crackme Level 0x01&quot; ; const char *s                                
+│           0x00401189      e8d2feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x0040118e      488d3d870e..   lea rdi, str.Password:      ; 0x40201c ; &quot;Password:&quot; ; const char *format
+│           0x00401195      b800000000     mov eax, 0
+│           0x0040119a      e8d1feffff     call sym.imp.printf         ; int printf(const char *format, ...)
+│           0x0040119f      488d45fc       lea rax, [var_4h]
+│           0x004011a3      4889c6         mov rsi, rax                ;  ...
+│           0x004011a6      488d3d7a0e..   lea rdi, [0x00402027]       ; &quot;%d&quot; ; const char *format
+│           0x004011ad      b800000000     mov eax, 0
+│           0x004011b2      e8c9feffff     call sym.imp.__isoc99_scanf ; int scanf(const char *format, ...)
+│           0x004011b7      8b45fc         mov eax, dword [var_4h]
+│           0x004011ba      3d9a140000     cmp eax, 0x149a
+│       ┌─&lt; 0x004011bf      750e           jne 0x4011cf
+│       │   0x004011c1      488d3d620e..   lea rdi, str.Password_OK_:_ ; 0x40202a ; &quot;Password OK :)&quot; ; const char *s
+│       │   0x004011c8      e893feffff     call sym.imp.puts           ; int puts(const char *s)
+│      ┌──&lt; 0x004011cd      eb0c           jmp 0x4011db
+│      ││   ; CODE XREF from main @ 0x4011bf(x)
+│      │└─&gt; 0x004011cf      488d3d630e..   lea rdi, str.Invalid_Password_ ; 0x402039 ; &quot;Invalid Password!&quot; ; const char *s
+│      │    0x004011d6      e885feffff     call sym.imp.puts           ; int puts(const char *s)
+│      │    ; CODE XREF from main @ 0x4011cd(x)
+│      └──&gt; 0x004011db      b800000000     mov eax, 0
+│           0x004011e0      c9             leave
+└           0x004011e1      c3             ret
+</code></pre>
+
+<ul>
+<li>this time password pin is slightly obscured, the cmp instruction takes placet at address 0x004011ba against a hex encoded value of  0x149a</li>
+<li>using rax2 we get its decimal representation and this turns out to be the pin for challenge 2</li>
+</ul>
+<pre class="codehilite"><code class="language-bash">&gt; rax2 0x149a
+5274
+&gt; ./crackme0x01 
+IOLI Crackme Level 0x01
+Password: 5274
+Password OK :)
+</code></pre>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>

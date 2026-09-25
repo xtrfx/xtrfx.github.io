@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-09-25-IOLI_Crackmes_0x00</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <p>I am working through a series of reversing challenges as a means of learning the use of Radare2 and to learn more about binary analysis. To that end, the Official Radare2 book, offers a walk through of several crackme challenges as means of introducing in practical terms the use of the tool suite. The IOLI challenges is a set of 10 challenges of which I found a 64 bit port. These are several years old , so little here is covering new ground, so mostly just a record of my working through them.</p>
+<h3>Initial Analysis</h3>
+<p>This is the first of the 10 challenges and the easiest. Upon execution of the binary we see:
+- Code execution triggers a password request
+- Failure triggers 'Invalid password!' string</p>
+<p>A quick check of the file type and search for strings shows a likely candidate for a password, the 250382 string. </p>
+<pre class="codehilite"><code class="language-bash">&gt;file crackme0x00
+crackme0x00: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3b9b1f0affa1210add9cc52f41a410510e936a72, for GNU/Linux 3.2.0, not stripped
+
+
+&gt;rabin2 -z crackme0x00
+nth paddr      vaddr      len size section type  string
+―――――――――――――――――――――――――――――――――――――――――――――――――――――――
+0   0x00002004 0x00402004 23  24   .rodata ascii IOLI Crackme Level 0x00
+1   0x0000201c 0x0040201c 9   11   .rodata ascii Password:
+2   0x0000202a 0x0040202a 6   7    .rodata ascii 250382
+3   0x00002031 0x00402031 14  15   .rodata ascii Password OK :)
+4   0x00002040 0x00402040 17  18   .rodata ascii Invalid password!
+
+
+&gt;readelf -a crackme0x00 | grep 'rodata'
+  [17] .rodata           PROGBITS         0000000000402000  00002000
+   04     .rodata .eh_frame_hdr .eh_frame 
+    17: 0000000000402000     0 SECTION LOCAL  DEFAULT   17 .rodata
+</code></pre>
+
+<p>As I want to dig a little deeper and understand the binary more, I loaded it into R2. </p>
+<pre class="codehilite"><code class="language-bash">[0x004010b0]&gt; ie
+paddr      vaddr      phaddr     vhaddr     type
+――――――――――――――――――――――――――――――――――――――――――――――――
+0x000010b0 0x004010b0 0x00000018 0x00400018 program
+
+[0x00402000]&gt; pd 1 @ 0x402031
+            ;-- str.Password_OK_:_:
+            ; DATA XREF from main @ 0x40120b(r)
+            0x00402031     .string &quot;Password OK :)&quot; ; len=15
+
+[0x00402000]&gt; axt 0x402031
+main 0x40120b [DATA:r--] lea rdi, str.Password_OK_:_
+[0x00402000]&gt; 
+
+[0x0040120b]&gt; pd 10
+│           0x0040120b      488d3d1f0e..   lea rdi, str.Password_OK_:_ ; 0x402031 ; &quot;Password OK :)&quot;
+│           0x00401212      e859feffff     call sym.imp.puts           ; int puts(const char *s)
+│       ┌─&lt; 0x00401217      eb0c           jmp 0x401225
+│       │   0x00401219      488d3d200e..   lea rdi, str.Invalid_password_ ; 0x402040 ; &quot;Invalid password!&quot;
+│       │   0x00401220      e84bfeffff     call sym.imp.puts           ; int puts(const char *s)
+│       │   ; CODE XREF from main @ 0x401217(x)
+│       └─&gt; 0x00401225      b800000000     mov eax, 0
+│           0x0040122a      c9             leave
+└           0x0040122b      c3             ret
+            0x0040122c      0f1f4000       nop dword [rax]
+            ; DATA XREF from entry0 @ 0x4010ca(r)
+┌ 101: sym.__libc_csu_init (int64_t arg1, int64_t arg2, int64_t arg3);
+│ `- args(rdi, rsi, rdx)
+│           0x00401230      f30f1efa       endbr64
+[0x0040120b]&gt; 
+
+
+[0x004011ba]&gt; pd 20
+│           0x004011ba      488d3d430e..   lea rdi, str.IOLI_Crackme_Level_0x00 ; str.IOLI_Crackme_Level_0x00
+│                                                                      ; 0x402004 ; &quot;IOLI Crackme Level 0x00&quot;                                                
+│           0x004011c1      e8aafeffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x004011c6      488d3d4f0e..   lea rdi, str.Password:      ; 0x40201c ; &quot;Password:&quot;
+│           0x004011cd      b800000000     mov eax, 0
+│           0x004011d2      e8a9feffff     call sym.imp.printf         ; int printf(const char *format, ...)
+│           0x004011d7      488d45e0       lea rax, [var_20h]
+│           0x004011db      4889c6         mov rsi, rax
+│           0x004011de      488d3d420e..   lea rdi, [0x00402027]       ; &quot;%s&quot;
+│           0x004011e5      b800000000     mov eax, 0
+│           0x004011ea      e8b1feffff     call sym.imp.__isoc99_scanf ; int scanf(const char *format, ...)
+│           0x004011ef      488d45e0       lea rax, [var_20h]
+│           0x004011f3      488d35300e..   lea rsi, str.250382         ; 0x40202a ; &quot;250382&quot;
+│           0x004011fa      4889c7         mov rdi, rax
+│           0x004011fd      e88efeffff     call sym.imp.strcmp         ; int strcmp(const char *s1, const char *s2)
+│           0x00401202      8945fc         mov dword [var_4h], eax
+│           0x00401205      837dfc00       cmp dword [var_4h], 0
+│       ┌─&lt; 0x00401209      750e           jne 0x401219
+│       │   0x0040120b      488d3d1f0e..   lea rdi, str.Password_OK_:_ ; 0x402031 ; &quot;Password OK :)&quot;
+│       │   0x00401212      e859feffff     call sym.imp.puts           ; int puts(const char *s)
+│      ┌──&lt; 0x00401217      eb0c           jmp 0x401225
+</code></pre>
+
+<p>Looking through the binary we can see:
+- the 'password OK' string is in the .rodata section at address 0x402031
+- that address is referenced by function main at address 0x40120b where the string is loaded into RDI for the subsequent call to puts followed by a jump to 0x401225 starting the end of the process
+- stepping back up the code to 0x4011ba we see where the user is prompted for the password 
+- proper password is loaded into RSI by instruction at 0x4011f3 calling the virtual address of the password string at 0x0040202a</p>
+<p>To better understand the logic flow of the comparison, I asked Claude for some clarification and this was the explanaiton. </p>
+<p>***strcmp Return Value and Data Flow</p>
+<p><code>strcmp</code> returns an integer:</p>
+<ul>
+<li>0 if the strings are equal</li>
+<li>&lt; 0 (negative) if the first string is lexicographically less than the second</li>
+<li>
+<blockquote>
+<p>0 (positive) if the first string is lexicographically greater than the second</p>
+</blockquote>
+</li>
+</ul>
+<p>***decision flow</p>
+<pre class="codehilite"><code>call sym.imp.strcmp    ; Call strcmp, return value goes into rax (or eax on 32-bit)
+mov &lt;register&gt;, eax    ; Move the return value to another register (or memory)
+cmp &lt;register&gt;, 0      ; Compare that value against 0j&lt;condition&gt; &lt;addr&gt;    ; Jump based on the comparison (je, jne, jl, jg, etc.)
+</code></pre>
+
+<p>With this, I think I have a good sense of the logic and am ready to jump to the next challenge.</p>
+<h3>References</h3>
+<li>https://book.rada.re/intro/intro.html</li>
+<li>https://github.com/BinaryResearch/IOLI64</li>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>

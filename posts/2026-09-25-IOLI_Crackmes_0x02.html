@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-09-24-IOLI_Crackmes_0x02</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <p>Running the strings search on binary 0x02 now shows that the pin has been obscured further. Using the 'Password OK' string as the analysis starting point we can look at the main funciton to see what is happening. </p>
+<pre class="codehilite"><code class="language-bash"> pdf@main
+            ;-- rip:
+ ---snip----
+│           0x004011b7      c745fc5a00..   mov dword [var_4h], 0x5a    ; 'Z' ; 90
+│           0x004011be      c745f8ec01..   mov dword [var_8h], 0x1ec   ; 492
+│           0x004011c5      8b55fc         mov edx, dword [var_4h]
+│           0x004011c8      8b45f8         mov eax, dword [var_8h]
+│           0x004011cb      01d0           add eax, edx
+│           0x004011cd      8945f4         mov dword [var_ch], eax
+│           0x004011d0      8b45f4         mov eax, dword [var_ch]
+│           0x004011d3      0fafc0         imul eax, eax
+│           0x004011d6      89c2           mov edx, eax
+│           0x004011d8      8b45f0         mov eax, dword [var_10h]
+│           0x004011db      39c2           cmp edx, eax
+│       ┌─&lt; 0x004011dd      750e           jne 0x4011ed
+│       │   0x004011df      488d3d440e..   lea rdi, str.Password_OK_:_ ; 0x40202a ; &quot;Password OK :)&quot; ; const char *s
+--- snip
+</code></pre>
+
+<p>The check against the pin takes place at 0x4011db, comparing values stored in EAX and EDX. In the instruction above, var_10h appears to be the user input string and thus the password must be stored in EDX. The value in EDX is computed starting with the instruction set starting at 0x4011b7. 
+To help with clarity the IOLI tutorial suggests that a way to look at this code besides following the assembly is to look at decompiled interpretation of the code, using the 'pdc' command. Looking at both the assembly and C interpretation, we can see that two hex encoded values of 90 and 492 are added together and squared to generate a 6 digit pin of 338724 which is indeed the pin.</p>
+<pre class="codehilite"><code class="language-C">[0x00401090]&gt; pdc@main
+// callconv: rax amd64 (rdi, rsi, rdx, rcx, r8, r9, stack);
+int main (int argc, char **argv, char **envp) {                                                                                                              
+    // ICOD XREF from entry0 @ 0x4010b1(r)
+    push (rbp)                                                                                                                                               
+    rbp = rsp
+    rsp -= 0x10
+    rdi = rip + str.IOLI_Crackme_Level_0x02 // 0x402004 // &quot;IOLI Crackme Level 0x02&quot; // const char *s
+    sym.imp.puts () // int puts(&quot;IOLI Crackme Level 0x02&quot;)                                                                                                   
+    rdi = rip + str.Password: // 0x40201c // &quot;Password:&quot; // const char *format                                                                               
+    eax = 0                                                                                                                                                  
+    sym.imp.printf () // int printf(&quot;Password: &quot;)
+    rax = var_10h                                                                                                                                            
+    rsi = rax     //  ...
+    rdi = rip + 0xe7a // &quot;%d&quot; // 0x402027 // const char *format                                                                                              
+    eax = 0                                                                                                                                                  
+    sym.imp.__isoc99_scanf () // int scanf(&quot;%d&quot;, 0x177fe8)
+    dword [var_4h] = 0x5a // 'Z' // 90                                                                                                                       
+    dword [var_8h] = 0x1ec // 492                                                                                                                            
+    edx = dword [var_4h]                                                                                                                                     
+    eax = dword [var_8h]
+    eax += edx
+    dword [var_ch] = eax
+    eax = dword [var_ch]
+    eax = eax * eax
+    edx = eax
+    eax = dword [var_10h]
+    v = edx - eax
+    if (!(edx - eax)) {
+        rdi = rip + str.Password_OK_:_ // 0x40202a // &quot;Password OK :)&quot; // const char *s
+        sym.imp.puts () // int puts(&quot;Password OK :)&quot;)                                                                                                        
+    } else....                                      
+</code></pre>
+
+<pre class="codehilite"><code class="language-bash">&gt; ./crackme0x02 
+IOLI Crackme Level 0x02
+Password: 338724
+Password OK :)
+</code></pre>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>
