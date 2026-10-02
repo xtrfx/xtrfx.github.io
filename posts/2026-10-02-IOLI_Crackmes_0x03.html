@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-10-02-IOLI_Crackmes_0x03</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <p>This challenge is more of a code analysis challenge. Adding further complexity to the previous crackme(0x02), this crackme generates a password using the same way (square of the sum of two values) however the arguments are now passed to a function <strong><em>sym.test</em></strong> at instruction at 0x4012ae. </p>
+<pre class="codehilite"><code class="language-bash">0x0040120e]&gt; pdf@main
+---snip
+│           0x00401286      c745fc5a00..   mov dword [var_4h], 0x5a    ; 'Z' ; 90
+│           0x0040128d      c745f8ec01..   mov dword [var_8h], 0x1ec   ; 492
+│           0x00401294      8b55fc         mov edx, dword [var_4h]
+│           0x00401297      8b45f8         mov eax, dword [var_8h]
+│           0x0040129a      01d0           add eax, edx
+│           0x0040129c      8945f4         mov dword [var_ch], eax
+│           0x0040129f      8b45f4         mov eax, dword [var_ch]
+│           0x004012a2      0fafc0         imul eax, eax
+│           0x004012a5      89c2           mov edx, eax
+│           0x004012a7      8b45f0         mov eax, dword [var_10h]
+│           0x004012aa      89d6           mov esi, edx
+│           0x004012ac      89c7           mov edi, eax
+│           0x004012ae      e85bffffff     call sym.test
+</code></pre>
+
+<p>lets search for it.  Here I used fs (flagspaces) to search for the function and its address.</p>
+<pre class="codehilite"><code class="language-bash">fs symbols; f
+</code></pre>
+
+<p>Here we find the address for sym.test which lives at address 0x40120e (pdf output below and now we see those two weird strings as well as calls to a sym.shift function.</p>
+<h3>sym.test</h3>
+<pre class="codehilite"><code class="language-bash">[0x0040120e]&gt; pdf
+            ; CALL XREF from main @ 0x4012ae(x)
+┌ 55: sym.test (int64_t arg1, int64_t arg2);
+│ `- args(rdi, rsi) vars(2:sp[0xc..0x10])
+│           0x0040120e      f30f1efa       endbr64
+│           0x00401212      55             push rbp
+│           0x00401213      4889e5         mov rbp, rsp
+│           0x00401216      4883ec10       sub rsp, 0x10
+│           0x0040121a      897dfc         mov dword [var_4h], edi     ; arg1
+│           0x0040121d      8975f8         mov dword [var_8h], esi     ; arg2
+│           0x00401220      8b45fc         mov eax, dword [var_4h]
+│           0x00401223      3b45f8         cmp eax, dword [var_8h]
+│       ┌─&lt; 0x00401226      750e           jne 0x401236
+│       │   0x00401228      488d3dd50d..   lea rdi, str.SdvvzrugRN____ ; 0x402004 ; &quot;Sdvvzrug#RN$$$#=,&quot;
+│       │   0x0040122f      e862ffffff     call sym.shift
+│      ┌──&lt; 0x00401234      eb0c           jmp 0x401242
+│      │└─&gt; 0x00401236      488d3dd90d..   lea rdi, str.LqydolgSdvvzrug_ ; 0x402016 ; &quot;Lqydolg#Sdvvzrug$&quot;
+│      │    0x0040123d      e854ffffff     call sym.shift
+│      │    ; CODE XREF from sym.test @ 0x401234(x)
+│      └──&gt; 0x00401242      90             nop
+│           0x00401243      c9             leave
+└           0x00401244      c3             ret
+</code></pre>
+
+<h3>sym.shift</h3>
+<pre class="codehilite"><code class="language-bash">[0x0040120e]&gt; pdf@0x401196
+            ; CALL XREFS from sym.test @ 0x40122f(x), 0x40123d(x)
+┌ 120: sym.shift (int64_t arg1);
+│ `- args(rdi) vars(4:sp[0xc..0x90])
+│           0x00401196      f30f1efa       endbr64
+│           0x0040119a      55             push rbp
+│           0x0040119b      4889e5         mov rbp, rsp
+│           0x0040119e      4881ec9000..   sub rsp, 0x90
+│           0x004011a5      4889bd78ff..   mov qword [var_88h], rdi    ; arg1
+│           0x004011ac      c745fc0000..   mov dword [var_4h], 0
+│           ; CODE XREF from sym.shift @ 0x4011f2(x)
+│       ┌─&gt; 0x004011b3      488b8578ff..   mov rax, qword [var_88h]
+│       ╎   0x004011ba      4889c7         mov rdi, rax
+│       ╎   0x004011bd      e8befeffff     call sym.imp.strlen         ; size_t strlen(const char *s)
+│       ╎   0x004011c2      8945f8         mov dword [var_8h], eax
+│       ╎   0x004011c5      8b45f8         mov eax, dword [var_8h]
+│       ╎   0x004011c8      3b45fc         cmp eax, dword [var_4h]
+│      ┌──&lt; 0x004011cb      7e27           jle 0x4011f4
+│      │╎   0x004011cd      8b45fc         mov eax, dword [var_4h]
+│      │╎   0x004011d0      4863d0         movsxd rdx, eax
+│      │╎   0x004011d3      488b8578ff..   mov rax, qword [var_88h]
+│      │╎   0x004011da      4801d0         add rax, rdx
+│      │╎   0x004011dd      0fb600         movzx eax, byte [rax]
+│      │╎   0x004011e0      83e803         sub eax, 3
+│      │╎   0x004011e3      89c2           mov edx, eax
+│      │╎   0x004011e5      8b45fc         mov eax, dword [var_4h]
+│      │╎   0x004011e8      4898           cdqe
+│      │╎   0x004011ea      88540580       mov byte [rbp + rax - 0x80], dl
+│      │╎   0x004011ee      8345fc01       add dword [var_4h], 1
+│      │└─&lt; 0x004011f2      ebbf           jmp 0x4011b3
+│      └──&gt; 0x004011f4      90             nop
+│           0x004011f5      8b45fc         mov eax, dword [var_4h]
+│           0x004011f8      4898           cdqe
+│           0x004011fa      c644058000     mov byte [rbp + rax - 0x80], 0
+│           0x004011ff      488d4580       lea rax, [var_80h]
+│           0x00401203      4889c7         mov rdi, rax
+│           0x00401206      e865feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x0040120b      90             nop
+│           0x0040120c      c9             leave
+└           0x0040120d      c3             ret
+</code></pre>
+
+<p>Immediate questions are: 
+1) What does test do with arguments passed to it? 
+2) What, if any, is their later use by shift?
+3) How do we get the output of shift?</p>
+<p>For the first question, it seems that test is now doing the pin/password check. The two weird strings are subsequently passed to sym.shift which generate the program output, depending on pin failure or pin success. The same shift is performed on both strings, which are de-obfuscated by a Cesar Shift. This is nicely visualized with R2. So now, the mechanism is clear and we can move on to 0x04.</p>
+<p>
+<img src = "/images/crackme0x03.jpg" 
+alt="R2 visualization of the control flow in the test funciton"/>
+
+</p>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>

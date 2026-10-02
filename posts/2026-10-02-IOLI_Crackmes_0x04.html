@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-10-02-IOLI_Crackmes_0x04</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <p>Building on crackme 0x03 the pin and its check are now further obscured. The main function now calls sym.check to carry out the pin comparison. The Radare2 tutorial suggests using pdd to decomplie this so we will start here. </p>
+<pre class="codehilite"><code class="language-C">#Decomplied code as given by r2
+#include &lt;stdint.h&gt;
+
+int64_t check (char * arg1) {
+    char * s;
+    char * var_11h;
+    int64_t var_10h;
+    size_t var_ch;
+    int32_t var_8h;
+    uint32_t var_4h;
+    rdi = arg1;
+    s = rdi;
+    var_4h = 0;
+    var_8h = 0;
+    do {
+        rax = s;
+        eax = strlen (s);
+        var_ch = eax;
+        if (eax &lt;= var_8h) {
+            puts (&quot;Password Incorrect!&quot;);
+            goto label_0;
+        }
+        eax = var_8h;
+        rdx = (int64_t) eax;
+        rax = s;
+        rax += rdx;
+        eax = *(rax);
+        var_11h = al;
+        rdx = &amp;var_10h;
+        rax = &amp;var_11h;
+        rsi = 0x00402018;
+        rdi = rax;
+        eax = 0;
+        isoc99_sscanf ();
+        eax = var_10h;
+        var_4h += eax;
+        if (var_4h == 0xf) {
+            goto label_1;
+        }
+        var_8h++;
+    } while (1);
+label_1:
+    puts (&quot;Password OK!&quot;);
+    exit (0);
+label_0:
+    return rax;
+}
+</code></pre>
+
+<p>To me it is not immediately obvious what is happening here, so I made an effort to clean this up, into a smaller though still messy psuedo-code version. After some steps we can begin to see that the user pin is treated as string where the individual characters are treated as single digit integers and are summed up to a total value (checkVal in my pseudo code.) If checkVal, the sum, is 15, that is treated as a success case. </p>
+<p>The R2 tutorial cleans this up in much nicer way, but in principle we are able to see what is happening to the input and how it leads to a success condition. </p>
+<pre class="codehilite"><code class="language-C">int64_t check (char * user_pin) {
+    char * s;
+    char * var_11h;
+    int64_t var_10h;
+    size_t var_ch;
+    int32_t inc; // increment variable in the do/while loop below
+    uint32_t var_4h;
+    checkVal = 0;
+    inc = 0;
+    do {
+        //check for zero case with the below if?
+        if (strlen(user_pin&lt;= inc))
+            puts (&quot;Password Incorrect!&quot;);
+            goto label_0;
+        }
+        string = user_pin[inc] ;
+        format = '%d' ;
+        isoc99_sscanf (rdi=string, format, output=var_10h);
+        checkVal = checkVal + var_10h;
+        if (checkVal == 15) {
+            goto label_1; //SUCCESS
+        }
+        inc ++; // var_8h++; 
+    } while (1);
+label_1:
+    puts (&quot;Password OK!&quot;);
+    exit (0);
+label_0:
+    return rax;
+}
+</code></pre>
+
+<p>I was a bit confused by the calls after the if conditional and asked for help from Claude, which provided some context to these lines:</p>
+<pre class="codehilite"><code>eax = var_8h;              // eax = loop counter (0, 1, 2, ...)
+rdx = (int64_t) eax;       // convert to 64-bit
+rax = s;                   // rax = base address of string
+rax += rdx;                // rax = s + offset (points to s[var_8h])
+eax = *(rax);              // dereference: get the byte at that address
+var_11h = al;              // store the character
+</code></pre>
+
+<p>In C, this is equivalent to:</p>
+<pre class="codehilite"><code class="language-C">var_11h = s[var_8h];
+</code></pre>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>
