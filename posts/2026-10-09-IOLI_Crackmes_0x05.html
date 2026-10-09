@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-10-09-IOLI_Crackmes_0x05</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <p>Similar to the 0x04 crackme, 0x05 uses the previous pin check function for a static value comparison (instruction at 0x40129d) to reference value 0x10 (decimal 16) . This time the integers must add up to 16 but also we have a call to an additional function to <strong><em>parell</em></strong> at 0x4012aa. What does it do?</p>
+<pre class="codehilite"><code class="language-bash">|     │ ╎   0x0040129a      0145fc         add dword [var_4h], eax
+│     │ ╎   0x0040129d      837dfc10       cmp dword [var_4h], 0x10
+│     │┌──&lt; 0x004012a1      750c           jne 0x4012af
+│     ││╎   0x004012a3      488b45d8       mov rax, qword [s]
+│     ││╎   0x004012a7      4889c7         mov rdi, rax                ; char *arg1
+│     ││╎   0x004012aa      e827ffffff     call sym.parell
+</code></pre>
+
+<p>Decompiling the check function, we can see that parell is called only if a pin with a sum of 16 given. Decompiling with pdd we get the following:</p>
+<pre class="codehilite"><code class="language-C">#include &lt;stdint.h&gt;
+int64_t parell (char * arg1) {
+    char * s;
+    int64_t var_4h;
+    rdi = arg1;
+    s = rdi;
+    rdx = &amp;var_4h;
+    rax = s;
+    rsi = 0x00402004;
+    rdi = rax;
+    eax = 0;
+    isoc99_sscanf ();
+    eax = var_4h;
+    eax &amp;= 1; // This is bitwise AND the value in EAX
+
+    if (eax == 0) {
+    // this check is looking if the number is Even (LSB is 0)
+        puts (&quot;Password OK!&quot;);
+        exit (0);
+    }
+    return rax;
+}
+[0x004010f0]&gt; 
+</code></pre>
+
+<p>Looking at the Password OK conditional we can see that we are checking for even or odd numbers[1]. (instruction at 0x41Success is only if the last number of the entered pin is even and the total adds up to 16, for example:</p>
+<pre class="codehilite"><code class="language-bash">&gt; ./crackme0x05
+IOLI Crackme Level 0x05
+Password: 556
+Password OK!
+
+&gt; ./crackme0x05
+IOLI Crackme Level 0x05
+Password: 5533
+Password Incorrect!
+</code></pre>
+
+<p>I wanted to be clear on the assembly that carries out this operation as the test instruction in 0x401208 was not apparent for me so I asked Claude for a bit of clarity:</p>
+<pre class="codehilite"><code class="language-bash">---snip----
+│           0x00401202      8b45fc         mov eax, dword [var_4h]
+│           0x00401205      83e001         and eax, 1
+│           0x00401208      85c0           test eax, eax
+</code></pre>
+
+<p>Here are the key points of the reply:</p>
+<p>The TEST instruction:
+1. Performs a bitwise AND between the two operands
+2. Updates the zero flag (ZF), sign flag (SF), and parity flag (PF) based on the result</p>
+<p>because any number AND'd with itself equals itself:</p>
+<pre class="codehilite"><code>eax AND eax = eax
+</code></pre>
+
+<p>After the previous line <code>and eax, 1</code>, <code>eax</code> now contains either 0 or 1:</p>
+<ul>
+<li>If the original number was odd: `eax = 1' //ZF is 0</li>
+<li>If the original number was even: `eax = 0' //ZF is 1</li>
+</ul>
+<h3>References</h3>
+<p>[1]The tutorial does a clean pseudocode of the parell function. https://book.rada.re/crackmes/ioli/ioli_0x05.html</p>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>
