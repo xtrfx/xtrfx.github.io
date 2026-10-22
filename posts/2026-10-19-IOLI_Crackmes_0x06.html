@@ -14,8 +14,8 @@
       <p>Hardware and Security Project write-ups</p>
       <nav>
         <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="#about">About</a></li>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/about.html">About</a></li>
         </ul>
       </nav>
     </header>
@@ -34,9 +34,13 @@ nth paddr      vaddr      len size section type  string
 </code></pre>
 
 <p>Looking at the dummy decompilation, it seems that we now have 3 pin conditions to be met: 
-- a decimal sum of 16 of the single digit integers in the pin
-- an even number as the last integer value
-- somewhere, the LOL string has to appear</p>
+<ul>
+<li>  a decimal sum of 16 of the single digit integers in the pin </li>
+<li>  an even number as the last integer value </li>
+<li>  somewhere, the LOL string has to appear</li>
+</ul>
+</p>
+
 <pre class="codehilite"><code class="language-C">int64_t dummy (int64_t arg1, char * arg2) {
     // arg2 is pinStr, arg1 is first digit of the pin
     char * s1;
@@ -91,9 +95,14 @@ int32_t main (int32_t argc, char ** argv, char ** envp) {
 </code></pre>
 
 <p>Well as it turns out, we are apparently checking for an environmental variable. Figuring out how and where this happens turned out to be the main learning exercise of this for me. To do this I ran R2 in debug mode:</p>
-<p>1) putting a breakpoint strncmp, forcing a stop during the dummy eval
-2) checking register states
-3) expanding on register content</p>
+<p>
+<ol>
+<li> putting a breakpoint strncmp, forcing a stop during the dummy eval </li>
+<li> checking register states </li>
+<li> expanding on register content</li>
+</ol>
+</p>
+
 <pre class="codehilite"><code class="language-bash">[0x004010a0]&gt; drr
 role reg     value              refstr
 ――――――――――――――――――――――――――――――――――――――
@@ -120,10 +129,13 @@ Password OK!
 
 <h3>Things I learned!</h3>
 <p>So, learning is what we get when things don't work and in those terms this was a success! After all, we are here to learn:
-- R2 can function as debugger (I can even run 32 bit binaries in it)
-- R2 visual mode can be simplified with (+/-) for viewing flow charts.
-- a way to pass environment variables to main in C
-- keeping track of registers is tricky....</p>
+<ul>
+<li> R2 can function as debugger (I can even run 32 bit binaries in it)i</li>
+<li> R2 visual mode can be simplified with (+/-) for viewing flow charts.</li>
+<li> a way to pass environment variables to main in C </li>
+<li> keeping track of registers is tricky....</li>
+</ul>
+</p>
 <h3>References</h3>
 <p>https://dustri.org/b/defeating-ioli-with-radare2-in-2017.html</p>
       </article>

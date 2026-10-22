@@ -37,8 +37,8 @@ with open(md_file, 'r', encoding='utf-8') as f:
       <p>Hardware and Security Project write-ups</p>
       <nav>
         <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="#about">About</a></li>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/about.html">About</a></li>
         </ul>
       </nav>
     </header>
