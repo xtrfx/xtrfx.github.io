@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-10-23-IOLI_Crackmes_0x07</title>
+  <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XTRFX</h1>
+      <p>Hardware and Security Project write-ups</p>
+      <nav>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/about.html">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <a href="/" class="back-link">Home</a>
+      <article>
+       <p>Challenged level increased! Running file on the binary immediately shows that the 0x07 binary has been stripped. Strings search shows the same output as 0x06 with the LOLO string in place so probably a very similar logic. We sill have a main function but down below we can see that we have lost the convenient function names. </p>
+<p>Based the previous analysis of 0x06 it is safe to assume that this is the 'check' function so I went ahead and renamed it just for easier tracking. Likewise, I updated all the other function names. There are a couple of smaller functions, which I left alone, which did not seem to alter the execution logic. </p>
+<p>Thus, the logic seems to be the same, parell is called when pin integer sum is 0x10. Environment is checked for a flag LOL with an arbitrary value and the last pin digit is again an even number and indeed that is the case.</p>
+<pre class="codehilite"><code class="language-bash">//--- call to 'check'
+0x004013ec      e8f5feffff     call fcn.004012e
+
+
+//---- changing some function names
+
+[0x004012e6]&gt; an fcn.004012e6
+[0x004012e6]&gt; afn check
+[0x004012e6]&gt; afl
+0x004010a0    1     11 sym.imp.strncmp
+0x004010b0    1     11 sym.imp.puts
+0x004010c0    1     11 sym.imp.strlen
+0x004010d0    1     11 sym.imp.printf
+0x004010e0    1     11 sym.imp.__isoc99_sscanf
+0x004010f0    1     11 sym.imp.__isoc99_scanf
+0x00401100    1     11 sym.imp.exit
+0x00401110    1     46 entry0
+0x00401383    1    117 main
+0x004012e6    7    157 check
+
+
+//---- success
+&gt; ./crackme0x07
+IOLI Crackme Level 0x07
+Password: 556
+Password Incorrect!
+&gt; export LOL=xtrfx
+&gt; ./crackme0x07
+IOLI Crackme Level 0x07
+Password: 556
+Password OK!
+</code></pre>
+
+<p>Interestingly, the decompile of parell has a slight change, where we now have two ifs and reference to an address at 0x404064. </p>
+<pre class="codehilite"><code class="language-C">...SNIP...
+    while (var_4h &lt;= 9) {
+        eax = var_ch;
+        eax &amp;= 1;
+        if (eax == 0) {
+            eax = *(0x00404064);
+            if (eax == 1) {
+                puts (&quot;Password OK!&quot;);
+            }
+            exit (0);
+        }
+        var_4h++;
+    }
+</code></pre>
+
+<p>In static analysis the address shows up with a value 0, meaning the second if conditional should fail, yet as we saw above through no effort of our own, it does not. What gives? If we trace calls to that address we see that both parell and dummy call it. We can see that if dummy executes, a one is moved to that address, which we can confirm with a dynamic debug of r2. </p>
+<pre class="codehilite"><code class="language-bash">---- calls to fishy address
+
+[0x0040125a]&gt; axt @ 0x404064
+dummy 0x40122a [DATA:-w-] mov dword [0x00404064], 1
+parell 0x4012b7 [DATA:r--] mov eax, dword [0x00404064]
+
+---- dummy pushing one into that address
+
+0x0040122a      c705302e00..   mov dword [0x00404064], 1   ; [0x404064:4]=0
+
+
+---- dynamic analysis
+[0x004012bd]&gt; px 4 @0x404064
+- offset -  6465 6667 6869 6A6B 6C6D 6E6F 7071 7273  456789ABCDEF0123
+0x00404064  0100
+</code></pre>
+
+<p>So a slightly obfuscation of the execution logic, which would presumably mean wasted time in analysis of a binary with no prior knowledge of its structure and function. Lessons learned. On to the next one.</p>
+      </article>
+
+    <footer>
+      <p>&copy; 2026. Gleb Solomentsev</p>
+    </footer>
+
+</body>
+</html>
